@@ -7,24 +7,69 @@
 <h2 style="padding-top: 10px">Webcam</h2>
 @section scripts
 {
-    <script src="@Url.Content("~/Scripts/jquery.webcam.js")">
-    </script>
+    <script src="@Url.Content("~/Scripts/jquery.webcam.js")"></script>
+    <div  style="align-content: center;padding-left: 100px">
+        <canvas id="canvas" height="240" width="320" style="border: 1px solid black"></canvas>
+    </div>
+    
     <script>
+        var pos = 0;
+        var ctx = canvas.getContext('2d');
+        var cam = null;
+        var image = [];
         $("#Camera").webcam({
-             width: 320,
-             height: 240,
-             mode: "save",
-             swffile: "@Url.Content("~/Scripts/jscam.swf")",
-             onTick: function () { },
-             onSave: function () {
-             },
-             onCapture: function () {
-                 webcam.save("@Url.Content("~/Home/Capture")/");
-             },
-             debug: function () { },
-             onLoad: function () { }
-         });
+            width: 320,
+            height: 240,
+            mode: "callback",
+            swffile: "@Url.Content("~/Scripts/jscam.swf")",
+
+            onSave: function(data) {
+                var col = data.split(";");
+                var img = image;
+
+                for (var i = 0; i < 320; i++) {
+                    var tmp = parseInt(col[i]);
+                    img.data[pos + 0] = (tmp >> 16) & 0xff;
+                    img.data[pos + 1] = (tmp >> 8) & 0xff;
+                    img.data[pos + 2] = tmp & 0xff;
+                    img.data[pos + 3] = 0xff;
+                    pos += 4;
+                }
+
+                if (pos >= 4 * 320 * 240) {
+                    ctx.putImageData(img, 0, 0);
+                    pos = 0;
+                }
+            },
+
+            onCapture: function() {
+                webcam.save();
+            },
+
+            debug: function(type,string) {
+                $("#status").html(type + ": " + string);
+            },
+
+            onLoad: function() {
+                var cams = webcam.getCameraList();
+                for (var i in cams) {
+                    jQuery("#cams").append("<li>" + cams[i] + "</li>");
+                }
+            }
+        });
+        window.addEventListener("load", function () {
+            var canvas = document.getElementById("canvas");
+
+            if (canvas.getContext) {
+                ctx = document.getElementById("canvas").getContext("2d");
+                ctx.clearRect(0, 0, 320, 240);
+
+
+                image = ctx.getImageData(0, 0, 320, 240);
+            }
+        }, false);
     </script>
+    
 }
 <input type="button" value="Shoot!" onclick="webcam.capture();" />
 <div id="Camera"></div>
