@@ -1,0 +1,30 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "title";
+}
+
+<h2 style="padding-top: 10px">Webcam</h2>
+@section scripts
+{
+    <script src="@Url.Content("~/Scripts/jquery.webcam.js")">
+    </script>
+    <script>
+        $("#Camera").webcam({
+             width: 320,
+             height: 240,
+             mode: "save",
+             swffile: "@Url.Content("~/Scripts/jscam.swf")",
+             onTick: function () { },
+             onSave: function () {
+             },
+             onCapture: function () {
+                 webcam.save("@Url.Content("~/Home/Capture")/");
+             },
+             debug: function () { },
+             onLoad: function () { }
+         });
+    </script>
+}
+<input type="button" value="Shoot!" onclick="webcam.capture();" />
+<div id="Camera"></div>
